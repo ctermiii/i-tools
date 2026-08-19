@@ -2,4 +2,33 @@ include:
   - https://cnb.cool/ilay1678/templates/-/blob/main/ci/docker.cnb.yml
   - https://cnb.cool/ilay1678/templates/-/blob/main/ci/docker.ghcr.yml
   - https://cnb.cool/ilay1678/templates/-/blob/main/ci/sync_to_github.yml
-  - https://cnb.cool/ilay1678/templates/-/blob/main/ci/ide.node.yml
+$:
+  vscode:
+    - docker:
+        # 指定开发环境镜像，可以是任意可访问的镜像
+        image: docker.cnb.cool/ilay1678/envbuild/dev-env:latest
+      services:
+        - vscode
+        - docker
+      stages:
+        - name: 软链 .config
+          # ./ 是工作目录，默认为 /workspace
+          script: |
+            if [ -e "/root/.cnb/.config" ]; then
+                if [ -e ~/.config ] && [ ! -L ~/.config ]; then
+                  rm -rf ~/.config
+                fi
+                ln -sf /root/.cnb/.config ~/.config
+            else
+                echo ".config不存在"
+            fi
+            if [ -e "/root/.cnb/.agents" ]; then
+                ln -sf /root/.cnb/.agents ~/.agents
+            else
+                echo ".agent不存在"
+            fi
+            if [ -e "/.cnb/.minimax-skills/skills/" ]; then
+                ln -s ~/.cnb/.minimax-skills/skills/* ~/.agents/skills/
+            else
+                echo ".minimax-skills不存在"
+            fi
